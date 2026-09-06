@@ -12,15 +12,14 @@ import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.hcahealthcaretask.R
+import com.example.hcahealthcaretask.application.GithubApplication
 import com.example.hcahealthcaretask.databinding.FragmentRepositoriesBinding
 import com.example.hcahealthcaretask.model.RepositoryDataItem
-import com.example.hcahealthcaretask.repository.GitHubRepository
-import com.example.hcahealthcaretask.service.RetrofitClient
 import com.example.hcahealthcaretask.utils.Constants
 import com.example.hcahealthcaretask.view.adapters.GitHubRepositoriesAdapter
 import com.example.hcahealthcaretask.viewmodels.GitHubRepositoriesViewModel
-import com.example.hcahealthcaretask.viewmodels.GitHubRepositoriesViewModelFactory
 import com.google.gson.Gson
+import javax.inject.Inject
 
 class GitHubRepositoriesFragment : Fragment(R.layout.fragment_repositories) {
 
@@ -30,17 +29,16 @@ class GitHubRepositoriesFragment : Fragment(R.layout.fragment_repositories) {
     private lateinit var layoutManager: LinearLayoutManager
     var isDataFiltered = false
 
-    // Usefull while integrate with dagger
-    // @Inject lateinit var viewModelFactory: GitHubRepositoriesViewModelFactory
+    @Inject
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentRepositoriesBinding.bind(view)
 
-        setVewModelForGithubRepo()
+        (activity?.application as GithubApplication).appComponent.inject(this)
 
-        //dependency injection
-        //(activity?.application as GithubApplication).appComponent.inject(this)
+        setVewModelForGithubRepo()
 
         setRecyclerview(view)
         seterror()
@@ -55,15 +53,9 @@ class GitHubRepositoriesFragment : Fragment(R.layout.fragment_repositories) {
     }
 
     private fun setVewModelForGithubRepo() {
-        val retrofitService = RetrofitClient.apiService
-        //viewmodel factory setup required while we have argument to pass in viewmodel
-        viewModel = ViewModelProvider(
-            this,
-            GitHubRepositoriesViewModelFactory(GitHubRepository(retrofitService))
-        )[GitHubRepositoriesViewModel::class.java]
+        viewModel = ViewModelProvider(this, viewModelFactory)[GitHubRepositoriesViewModel::class.java]
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
-        viewModel = GitHubRepositoriesViewModel(GitHubRepository(retrofitService))
     }
 
     private fun setRecyclerview(view: View) {

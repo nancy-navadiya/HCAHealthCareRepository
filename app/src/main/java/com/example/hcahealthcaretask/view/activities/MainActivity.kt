@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.hcahealthcaretask.R
+import com.example.hcahealthcaretask.application.GithubApplication
 import com.example.hcahealthcaretask.databinding.ActivityMainBinding
 import javax.inject.Inject
 
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        (application as GithubApplication).appComponent.inject(this)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)

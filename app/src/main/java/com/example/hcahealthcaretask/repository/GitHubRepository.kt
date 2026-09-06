@@ -6,10 +6,9 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.schedulers.Schedulers
 
-//useful while you are integrating Dagger
-//class GitHubRepository @Inject constructor(private val apiService: GitHubApiService) {
+import javax.inject.Inject
 
-class GitHubRepository(private val apiService: GitHubApiService) {
+class GitHubRepository @Inject constructor(private val apiService: GitHubApiService) {
 
     fun getRepositories(username: String, perPage: Int, page: Int): Single<List<RepositoryDataItem>> {
         return apiService.getRepositories(username, perPage, page)
