@@ -1,86 +1,70 @@
 package com.example.hcahealthcaretask.viewmodels
 
-import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.filter
+import androidx.paging.cachedIn
 import com.example.hcahealthcaretask.model.RepositoryDataItem
 import com.example.hcahealthcaretask.repository.GitHubRepository
-import io.reactivex.rxjava3.disposables.CompositeDisposable
+import com.example.hcahealthcaretask.utils.Constants
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
-class GitHubRepositoriesViewModel( val repository: GitHubRepository) : ViewModel() {
+@HiltViewModel
+/** Holds repository search/filter state and exposes the resulting paged data. */
+class GitHubRepositoriesViewModel @Inject constructor(
+    private val repository: GitHubRepository
+) : ViewModel() {
+    private val username = MutableStateFlow(Constants.DEFAULT_USERNAME)
+    private val selectedLanguage = MutableStateFlow(ALL_LANGUAGES)
 
-    //set and update repository list according response
-    val _repositories = MutableLiveData<List<RepositoryDataItem>>()
-    val repositories: LiveData<List<RepositoryDataItem>> get() = _repositories
-
-    //set and update repository list according filter by language
-    val _filteredRepositories = MutableLiveData<List<RepositoryDataItem>>()
-    val filteredRepositories: LiveData<List<RepositoryDataItem>> get() = _filteredRepositories
-
-    //error handling for No API Call Response
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> get() = _error
-
-    private val compositeDisposable = CompositeDisposable()
-
-    private var allRepositories: List<RepositoryDataItem> = emptyList()
-    var currentPage = 1
-    var isLastPage = false
-    var isLoading = false
-
-    fun fetchRepositories(userName: String = "google", isNewSearch : Boolean) {
-        // Avoid multiple calls while loading or if it's the last page
-        if (isLoading || isLastPage) return
-
-        if (isNewSearch) {
-            // Clear the existing data and reset pagination
-            allRepositories = emptyList()
-            currentPage = 1
-            isLastPage = false
-        }
-
-        isLoading = true
-
-        val disposable = repository.getRepositories(userName, 10, currentPage )
-            .subscribe({ result ->
-                isLoading = false
-                if (result.isNotEmpty()) {
-                    allRepositories = allRepositories + result
-                    _repositories.value = allRepositories
-                    _filteredRepositories.value = allRepositories // Initially, no filter is applied
-                    currentPage++
-                } else {
-                    isLastPage = true
+    // Debouncing prevents a network request for every character entered in the search field.
+    val repositories: StateFlow<PagingData<RepositoryDataItem>> =
+        combine(
+            username.debounce(1000).distinctUntilChanged(),
+            selectedLanguage
+        ) { currentUsername, language -> currentUsername to language }
+            .flatMapLatest { (currentUsername, language) ->
+                // A new username or language selection cancels the previous stream.
+                repository.getRepositories(currentUsername).map { pagingData ->
+                    if (language == ALL_LANGUAGES) {
+                        pagingData
+                    } else {
+                        pagingData.filter {
+                            it.language.equals(language, ignoreCase = true)
+                        }
+                    }
                 }
-            }, { throwable ->
-                isLoading = false
-                _error.value = "Error fetching data: ${throwable.message}"
-            })
-        compositeDisposable.add(disposable)
-    }
-
-    // Filter repositories by language
-    fun filterRepositories(language: String) {
-        if (language == "All") {
-            _filteredRepositories.value = allRepositories
-        } else {
-            Log.e("Nenshi", "before filter : $allRepositories")
-            _filteredRepositories.value = allRepositories.filter {
-                it.language?.equals(language, ignoreCase = true) == true
             }
-        }
+            .cachedIn(viewModelScope)
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                PagingData.empty()
+            )
+
+    /** Updates the username, falling back to the default when the input is blank. */
+    fun setUsername(value: String) {
+        username.value = value.trim().ifBlank { Constants.DEFAULT_USERNAME }
     }
 
-    fun clearRepositoryList() {
-        _repositories.value = emptyList() // Clear existing data fetch from response
-    }
-    fun clearFilteredRepositoryList() {
-        _filteredRepositories.value = emptyList() // Clear existing data from list to be filtered
+    /** Applies the language selected by the user to the current paged stream. */
+    fun setLanguage(language: String) {
+        selectedLanguage.value = language
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        compositeDisposable.clear()
+    companion object {
+        /** Sentinel value meaning that no language filter should be applied. */
+        const val ALL_LANGUAGES = "All"
     }
 }
