@@ -43,10 +43,12 @@ The app displays repository details such as avatar, name, description, language,
 
 - Kotlin: Primary language for Android development.
 - MVVM (Model-View-ViewModel): Implements separation of concerns and testability.
-- Data Binding: To bind UI components in layouts to data sources.
-- Fragment Navigation: Manages fragment transactions for repository list and details.
+- Jetpack Compose: Declarative UI for the repository list, filtering, and detail screens.
+- Navigation Compose: Manages navigation between repository list and detail screens.
+- Hilt: Provides the Retrofit API and repository dependencies.
 - Retrofit: For making network calls to GitHub API.
-- RxKotlin: For reactive programming and managing async operations.
+- Kotlin Coroutines and Flow: Handles asynchronous work and UI state.
+- Paging 3: Loads repositories incrementally as the user scrolls.
 - Unit Testing: Provides test coverage for ViewModel and repository logic.
 
 ## Getting Started

@@ -1,15 +1,8 @@
 package com.example.hcahealthcaretask.application
 
 import android.app.Application
-import com.example.hcahealthcaretask.component.ApplicationComponent
-import com.example.hcahealthcaretask.component.DaggerApplicationComponent
+import dagger.hilt.android.HiltAndroidApp
 
-class GithubApplication : Application(){
-
-    lateinit var appComponent: ApplicationComponent
-
-    override fun onCreate() {
-        super.onCreate()
-        appComponent = DaggerApplicationComponent.builder().build()
-    }
-}
+@HiltAndroidApp
+/** Application entry point that enables Hilt dependency injection. */
+class GithubApplication : Application()

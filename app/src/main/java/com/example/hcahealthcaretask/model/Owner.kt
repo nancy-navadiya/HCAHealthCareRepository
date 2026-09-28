@@ -1,5 +1,6 @@
 package com.example.hcahealthcaretask.model
 
+/** GitHub user or organization that owns a repository. */
 data class Owner(
     val avatar_url: String,
     val events_url: String,

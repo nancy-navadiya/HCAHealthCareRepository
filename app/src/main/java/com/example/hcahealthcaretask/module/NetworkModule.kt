@@ -1,40 +1,57 @@
 package com.example.hcahealthcaretask.module
 
-import androidx.lifecycle.ViewModelProvider
 import com.example.hcahealthcaretask.service.GitHubApiService
 import com.example.hcahealthcaretask.utils.Constants
-import com.example.hcahealthcaretask.viewmodels.GitHubRepositoriesViewModelFactory
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import io.nerdythings.okhttp.profiler.OkHttpProfilerInterceptor
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
-// useful while you are integrating Dagger
 @Module
-class NetworkModule {
+@InstallIn(SingletonComponent::class)
+/** Provides the application-wide HTTP client, Retrofit instance, and GitHub API. */
+object NetworkModule {
 
+    /** Logs request and response bodies while debugging network calls. */
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+    /** Creates the shared HTTP client with diagnostics and conservative timeouts. */
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor (OkHttpProfilerInterceptor())
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+    /** Configures Retrofit to use the GitHub base URL and Gson response conversion. */
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
-            .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
             .build()
     }
 
+    /** Builds the typed API implementation used by the repository layer. */
     @Provides
     @Singleton
-    fun provideGitHubApiService(retrofit: Retrofit): GitHubApiService {
-        return retrofit.create(GitHubApiService::class.java)
-    }
-}
-
-@Module
-abstract class ViewModelModule {
-    @Binds
-    abstract fun bindViewModelFactory(factory: GitHubRepositoriesViewModelFactory): ViewModelProvider.Factory
+    fun provideGitHubApiService(retrofit: Retrofit): GitHubApiService =
+        retrofit.create(GitHubApiService::class.java)
 }

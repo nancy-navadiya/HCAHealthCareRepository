@@ -1,5 +1,6 @@
 package com.example.hcahealthcaretask.utils
 
+/** Shared API configuration and user-facing labels used by the repository screens. */
 object Constants {
         const val BASE_URL = "https://api.github.com/"
         const val REPO_NAME = "Repository Name: "

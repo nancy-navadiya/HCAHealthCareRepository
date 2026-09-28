@@ -1,17 +1,17 @@
 package com.example.hcahealthcaretask.service
 
 import com.example.hcahealthcaretask.model.RepositoryDataItem
-import io.reactivex.rxjava3.core.Single
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+/** Retrofit endpoints used to retrieve repositories for a GitHub user. */
 interface GitHubApiService {
+    /** Loads one page of repositories using GitHub's pagination parameters. */
     @GET("users/{username}/repos")
-    fun getRepositories(
+    suspend fun getRepositories(
         @Path("username") username: String,
         @Query("per_page") perPage: Int,
         @Query("page") page: Int
-    ): Single<List<RepositoryDataItem>>
+    ): List<RepositoryDataItem>
 }
-
