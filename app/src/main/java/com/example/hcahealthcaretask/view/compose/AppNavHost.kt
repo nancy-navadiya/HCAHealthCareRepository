@@ -16,6 +16,7 @@ import com.example.hcahealthcaretask.view.screens.RepositoryDetailScreen
 fun AppNavHost() {
     val navController = rememberNavController()
 
+    // navigate  back to the repository list screen
     NavHost(
         navController = navController,
         startDestination = REPOSITORIES_ROUTE
@@ -24,6 +25,7 @@ fun AppNavHost() {
             GitHubRepositoriesScreen(navController)
         }
 
+        //navigate to repo details screen with the selected repository serialized as a navigation argument
         composable(
             route = REPOSITORY_DETAIL_SCREEN,
             arguments = listOf(

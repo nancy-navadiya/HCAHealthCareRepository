@@ -81,4 +81,36 @@ data class RepositoryDataItem(
     val watchers: Int,
     val watchers_count: Int,
     val web_commit_signoff_required: Boolean
-)
+) {
+
+    /** License metadata returned as part of a GitHub repository response. */
+    data class License(
+        val key: String,
+        val name: String,
+        val node_id: String,
+        val spdx_id: String,
+        val url: String
+    )
+
+    /** GitHub user or organization that owns a repository. */
+    data class Owner(
+        val avatar_url: String,
+        val events_url: String,
+        val followers_url: String,
+        val following_url: String,
+        val gists_url: String,
+        val gravatar_id: String,
+        val html_url: String,
+        val id: Int,
+        val login: String,
+        val node_id: String,
+        val organizations_url: String,
+        val received_events_url: String,
+        val repos_url: String,
+        val site_admin: Boolean,
+        val starred_url: String,
+        val subscriptions_url: String,
+        val type: String,
+        val url: String
+    )
+}

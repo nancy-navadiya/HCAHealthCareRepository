@@ -51,6 +51,18 @@ The app displays repository details such as avatar, name, description, language,
 - Paging 3: Loads repositories incrementally as the user scrolls.
 - Unit Testing: Provides test coverage for ViewModel and repository logic.
 
+## Architecture
+
+The app keeps presentation, domain contracts, and data access separate:
+
+- `view` and `viewmodels` contain the Compose UI and presentation state.
+- `usecase` defines domain operations, while `usecaseimpl` contains their implementations.
+- `repository` defines the GitHub API data-access contract, while `data/repository` delegates API calls.
+- `usecaseimpl` owns repository paging and language-filtering behavior.
+- `service` contains Retrofit API definitions, and `module` binds implementations with Hilt.
+
+The repository list flow is `GitHubRepositoriesViewModel` → `GetRepositoriesUseCase` (paging and filtering) → `GitHubRepository` (API calls) → `GitHubApiService`.
+
 ## Getting Started
 
 ### Prerequisites

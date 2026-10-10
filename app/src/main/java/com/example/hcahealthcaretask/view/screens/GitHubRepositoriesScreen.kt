@@ -35,6 +35,8 @@ import com.example.hcahealthcaretask.viewmodels.GitHubRepositoriesViewModel
 import com.google.gson.Gson
 import com.example.hcahealthcaretask.view.screens.dropdown.LanguageDropdown
 import com.example.hcahealthcaretask.view.screens.subItem.RepositoryListItem
+import com.nancy.commondemo.ui.theme.navyBlue
+import com.nancy.commondemo.ui.theme.white
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,8 +68,8 @@ fun GitHubRepositoriesScreen(navController: NavHostController) {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = navyBlue,
+                    titleContentColor = white,
                 )
             )
         }
@@ -75,7 +77,7 @@ fun GitHubRepositoriesScreen(navController: NavHostController) {
         Surface(
             modifier = Modifier
                 .padding(innerPadding)
-                .background(Color.Gray.copy(alpha = 0.1f))
+                .background(Color.Gray)
         ) {
             Column(
                 modifier = Modifier
@@ -90,7 +92,9 @@ fun GitHubRepositoriesScreen(navController: NavHostController) {
                         searchText.value = it
                         viewModel.setUsername(it)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White),
                     singleLine = true,
                     placeholder = { Text("Search GitHub username") }
                 )

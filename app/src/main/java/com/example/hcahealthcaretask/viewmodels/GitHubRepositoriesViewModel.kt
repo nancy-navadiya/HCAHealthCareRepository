@@ -3,11 +3,10 @@ package com.example.hcahealthcaretask.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
-import androidx.paging.filter
 import androidx.paging.cachedIn
 import com.example.hcahealthcaretask.model.RepositoryDataItem
-import com.example.hcahealthcaretask.repository.GitHubRepository
 import com.example.hcahealthcaretask.utils.Constants
+import com.example.hcahealthcaretask.domain.usecase.GetRepositoriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,14 +15,13 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 /** Holds repository search/filter state and exposes the resulting paged data. */
 class GitHubRepositoriesViewModel @Inject constructor(
-    private val repository: GitHubRepository
+    private val getRepositories: GetRepositoriesUseCase
 ) : ViewModel() {
     private val username = MutableStateFlow(Constants.DEFAULT_USERNAME)
     private val selectedLanguage = MutableStateFlow(ALL_LANGUAGES)
@@ -36,15 +34,10 @@ class GitHubRepositoriesViewModel @Inject constructor(
         ) { currentUsername, language -> currentUsername to language }
             .flatMapLatest { (currentUsername, language) ->
                 // A new username or language selection cancels the previous stream.
-                repository.getRepositories(currentUsername).map { pagingData ->
-                    if (language == ALL_LANGUAGES) {
-                        pagingData
-                    } else {
-                        pagingData.filter {
-                            it.language.equals(language, ignoreCase = true)
-                        }
-                    }
-                }
+                getRepositories(
+                    username = currentUsername,
+                    language = language.takeUnless { it == ALL_LANGUAGES }
+                )
             }
             .cachedIn(viewModelScope)
             .stateIn(
